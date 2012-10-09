@@ -1,0 +1,188 @@
+#!/usr/bin/env node
+
+/*
+ * linken
+ * https://github.com/cowboy/node-linken
+ *
+ * Copyright (c) 2012 "Cowboy" Ben Alman
+ * Licensed under the MIT license.
+ */
+
+'use strict';
+
+// Nodejs libs.
+var fs = require('fs');
+var path = require('path');
+
+// External libs.
+var semver = require('semver');
+var mkdirp = require('mkdirp');
+var rimraf = require('rimraf');
+var nopt = require('nopt');
+
+// linken project metadata.
+var linken = require('../package.json');
+
+// Accepted CLI options.
+var opts = nopt({
+  version: Boolean,
+  help: Boolean,
+  unlink: Boolean,
+  debug: Boolean,
+  src: [Array, path],
+}, {
+  v: '--version',
+  h: '--help',
+});
+
+// Help, version, etc.
+if (opts.version) {
+  console.log(linken.version);
+  process.exit();
+} else if (opts.help) {
+  [
+    linken.name + ' ' + linken.version + ' - ' + linken.description,
+    '',
+    'Instead of linking in-development projects globally (npm link), then linking',
+    'them into another project (npm link projectname), just link them directly to',
+    'the other project with explicit symlinks.',
+    '',
+    'Usage: linken dest [dest [...]] --src somepath [--src somepath [...]]',
+    '',
+    '     --src  Directory containing one or more in-development projects. These',
+    '            projects are linked into the dest projects node_modules dirs.',
+    '  --unlink  Instead of linking, unlink.',
+    '   --debug  A lot more output.',
+    '    --help  This help screen.',
+    ' --version  The version.',
+    '',
+    'An example: linken /dev/repos/*/ --src /dev/repos',
+    '',
+    'Link any "src" repos (subdirectories of /dev/repos) into each project matched',
+    'by /dev/repos/*/. In this case, every subdirectory of /dev/repos.',
+    '',
+    'This would also work: cd /dev/repos; linken */ --src',
+    '',
+    'For more information: https://github.com/cowboy/node-linken',
+  ].forEach(function(s) { console.log(s); });
+  process.exit();
+}
+
+// Does it exist?
+var exists = function() {
+  var filepath = path.join.apply(path, arguments);
+  return fs.existsSync(filepath);
+};
+
+// Is it a directory?
+var isDir = function() {
+  var dirpath = path.join.apply(path, arguments);
+  return exists(dirpath) && fs.statSync(dirpath).isDirectory();
+};
+
+// Parse options.
+var dests = opts.argv.remain.filter(function(dirpath) {
+  if (!isDir(dirpath)) {
+    console.log('Ignoring invalid path "%s".', dirpath);
+  } else if (!exists(dirpath, 'package.json')) {
+    console.log('Missing package.json file in path "%s".', dirpath);
+  } else {
+    return true;
+  }
+});
+var srcs = opts.src;
+var unlink = opts.unlink;
+var debug = opts.debug;
+
+// console.log(dests);
+// console.log(srcs);
+// process.exit();
+
+if (dests.length === 0) {
+  console.log('You must specify at least one valid destination path.');
+  process.exit(1);
+}
+
+if (!srcs) {
+  console.log('You must specify at least one --src path.');
+  process.exit(1);
+}
+
+// For each child subdirectory of each --src path, add any valid npm
+// modules (those with a package.json file) to a master "modules" object.
+var modules = {};
+srcs.forEach(function(src) {
+  if (!exists(src)) {
+    console.log('Ignoring invalid --src path "%s".', src);
+    return;
+  }
+  src = path.resolve(src);
+  fs.readdirSync(src).forEach(function(dirname) {
+    if (!isDir(src, dirname)) { return; }
+    var pkgpath = path.join(src, dirname, 'package.json');
+    if (!exists(pkgpath)) { return; }
+    var pkg = require(pkgpath);
+    modules[pkg.name] = {
+      dirpath: path.join(src, dirname),
+      version: pkg.version
+    };
+  });
+});
+
+var keys;
+if (debug) {
+  keys = Object.keys(modules);
+  console.log('Found %d modules:', keys.length);
+  keys.forEach(function(name) {
+    console.log('* %s (%s)', name, modules[name].version);
+  });
+  console.log('');
+}
+
+// For each destination directory, link or unlink any appropriate modules from
+// any --src directory.
+dests.forEach(function(dest) {
+  dest = path.resolve(dest);
+
+  // Determine which (if any) modules should be linked locally.
+  var links = [];
+  var pkg = require(path.join(dest, 'package.json'));
+  ['dependencies', 'devDependencies'].forEach(function(prop) {
+    if (!pkg[prop]) { return; }
+    Object.keys(modules).forEach(function(name) {
+      var range = pkg[prop][name];
+      if (range && semver.satisfies(modules[name].version, range)) {
+        links.push(name);
+      }
+    });
+  });
+
+  if (links.length > 0 || debug) {
+    console.log('%s: ' + (unlink ? 'un' : '') + 'linking %d module' +
+      (links.length === 1 ? '' : 's'), path.basename(dest), links.length);
+  }
+
+  if (links.length > 0) {
+    // Create node_modules subdirectory if needed.
+    mkdirp.sync(path.join(dest, 'node_modules'));
+
+    // Actually unlink / link modules into node_modules directory.
+    links.forEach(function(name) {
+      var mod = modules[name];
+      if (debug) {
+        console.log('* %s (%s)', name, mod.version);
+      }
+      var linkTo = path.join(dest, 'node_modules', name);
+      rimraf.sync(linkTo);
+      if (!unlink) {
+        fs.symlinkSync(mod.dirpath, linkTo, 'dir');
+      }
+    });
+  }
+
+  if (debug) {
+    console.log('');
+  }
+});
+
+console.log('Done!');
