@@ -9,14 +9,22 @@ module.exports = function(grunt) {
         jshintrc: '.jshintrc'
       },
       stuff: {
-        src: ['Gruntfile.js', 'bin/*']
+        src: [
+          'Gruntfile.js',
+          'bin/*',
+          'lib/*.js'
+        ]
       },
+    },
+    nodeunit: {
+      tests: ['test/*_test.js'],
     },
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
   // Default task.
-  grunt.registerTask('default', ['jshint']);
+  grunt.registerTask('default', ['jshint', 'nodeunit']);
 
 };

@@ -1,0 +1,8 @@
+{
+  "name": "qux",
+  "description": "A linken test fixture.",
+  "version": "1.0.0",
+  "devDependencies": {
+    "quux": "0.1.0"
+  }
+}

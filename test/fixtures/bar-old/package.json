@@ -1,0 +1,11 @@
+{
+  "name": "bar",
+  "description": "A linken test fixture.",
+  "version": "0.9.0",
+  "dependencies": {
+    "foo": "~0.9.0"
+  },
+  "devDependencies": {
+    "baz": "~1.0.0"
+  }
+}

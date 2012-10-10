@@ -1,0 +1,11 @@
+{
+  "name": "baz",
+  "description": "A linken test fixture.",
+  "version": "1.0.0",
+  "dependencies": {
+    "foo": "~0.9.0"
+  },
+  "devDependencies": {
+    "qux": "~1.0.0"
+  }
+}

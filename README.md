@@ -21,8 +21,12 @@ An example: linken /dev/repos/*/ --src /dev/repos
 Link any "src" repos (subdirectories of /dev/repos) into each project matched
 by /dev/repos/*/. In this case, every subdirectory of /dev/repos.
 
-This would also work: cd /dev/repos; linken */ --src
+This would also work: cd /dev/repos; linken */ --src .
 ```
 
 ## why?
 [SO MANY REPOS](https://github.com/gruntjs)
+
+## revision history
+0.2.0 - 2012-10-10 - Now resolves module version conflicts. Works as a lib. Unit tests. Yay.  
+0.1.0 - 2012-10-09 - Initial release.
