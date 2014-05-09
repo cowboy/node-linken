@@ -32,9 +32,13 @@
     "semver": "~1.1.0"
   },
   "devDependencies": {
-    "grunt-contrib-jshint": "0.1.0",
-    "grunt-contrib-nodeunit": "0.1.0",
-    "grunt": "~0.4.0a"
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-nodeunit": "~0.3.3",
+    "grunt": "~0.4.4"
   },
-  "keywords": ["npm", "link", "symlink"]
+  "keywords": [
+    "npm",
+    "link",
+    "symlink"
+  ]
 }
