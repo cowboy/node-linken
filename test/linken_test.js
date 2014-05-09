@@ -64,10 +64,15 @@ exports['linken'] = {
     linken([base], getDirs('bar'), {log: null});
     linken([base], getDirs('baz'), {log: null});
     linken([base], getDirs('qux'), {log: null});
+    linken([base], getDirs('gitdepver'), {log: null});
+    linken([base], getDirs('gitdepnover'), {log: null});
     test.deepEqual(getLinks('foo'), ['qux'], 'qux should have been linked into foo');
     test.deepEqual(getLinks('bar'), ['baz', 'foo-new'], 'baz and foo-new should have been linked into bar');
     test.deepEqual(getLinks('baz'), ['foo-old', 'qux'], 'foo-old and qux should have been linked into baz');
     test.deepEqual(getLinks('qux'), false, 'nothing should have been linked into qux, node_modules should not have been created');
+    test.deepEqual(getLinks('gitdepver'), false, 'should not link bar, version does not match');
+    test.deepEqual(getLinks('gitdepnover'), ['bar','baz','foo','qux'], 'should link bar and subdeps, using version * because there is none');
+
     test.done();
   },
   'multiple dest': function(test) {

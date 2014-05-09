@@ -1,0 +1,8 @@
+{
+  "name": "gitdepnover",
+  "description": "A linken test fixture.",
+  "version": "0.9.0",
+  "devDependencies": {
+    "bar": "git+ssh://git@github.com:linken/bar.git"
+  }
+}
