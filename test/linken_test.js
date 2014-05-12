@@ -19,6 +19,8 @@ var dirs = [
   'bar-old',
   'baz',
   'qux',
+  'bar-giturl-ver',
+  'bar-giturl-nover',
 ];
 
 var clean = function(dir) {
@@ -59,15 +61,21 @@ exports['linken'] = {
     done();
   },
   'single dest': function(test) {
-    test.expect(4);
+    test.expect(6);
     linken([base], getDirs('foo'), {log: null});
     linken([base], getDirs('bar'), {log: null});
     linken([base], getDirs('baz'), {log: null});
     linken([base], getDirs('qux'), {log: null});
+    linken([base], getDirs('bar-giturl-ver'), {log: null});
+    linken([base], getDirs('bar-giturl-nover'), {log: null});
+
     test.deepEqual(getLinks('foo'), ['qux'], 'qux should have been linked into foo');
     test.deepEqual(getLinks('bar'), ['baz', 'foo-new'], 'baz and foo-new should have been linked into bar');
     test.deepEqual(getLinks('baz'), ['foo-old', 'qux'], 'foo-old and qux should have been linked into baz');
     test.deepEqual(getLinks('qux'), false, 'nothing should have been linked into qux, node_modules should not have been created');
+    test.deepEqual(getLinks('bar-giturl-ver'), ['foo'], 'should link foo but not baz (version does not match)');
+    test.deepEqual(getLinks('bar-giturl-nover'), ['baz', 'foo-new'], 'should link bar and subdeps, using version * because there is none');
+
     test.done();
   },
   'multiple dest': function(test) {
