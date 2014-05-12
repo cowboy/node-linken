@@ -1,0 +1,11 @@
+{
+  "name": "bar",
+  "description": "A linken test fixture.",
+  "version": "9.0.0",
+  "dependencies": {
+    "foo": "git+ssh://git@github.com:linken/foo.git#1.0.0"
+  },
+  "devDependencies": {
+    "baz": "git+ssh://git@github.com:linken/baz.git#2.0.0"
+  }
+}
